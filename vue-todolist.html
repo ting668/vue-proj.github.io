@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style >
+		body,ul{
+			padding: 0px;
+			margin: 0px;
+		}
+		.title{
+			height: 150px;
+			background-color:#eeeeee;
+			text-align: center;
+			padding-top:70px;
+		}
+		.container{
+			text-align: center;
+			min-width: 650px;
+		}
+		li{
+			list-style: none;
+		}
+		
+		.container input{
+			height: 30px;
+			width: 300px;
+			margin-top:10px; 
+			border:1px solid #FFA500;
+		}
+		.container button{
+			margin-top:10px; 
+			height: 32px;
+			width: 100px;
+			background-color: 	#FFDEAD;
+			border: none;
+			border-radius: 3px;
+			position: relative;
+			left:5px;
+
+		}
+		.container-add{
+			height: 55px;
+			
+			background-color:#fbf9fb;
+		}
+		.container-nav{
+			height:35px;
+			width: 80%;
+			background-color:		#FFDEAD;
+			padding-right: 10%;
+			margin: auto;
+		}
+
+		.container-nav li{
+			width: 50px;
+			height:33px;
+			float: right;
+			position:relative;
+			background-color:#ffffff;
+			border:1px solid #eeeeee;
+			line-height: 35px;
+			border-radius: 1px;
+		}
+		.container-nav li:hover{
+			background-color: #EEE9E9;
+		}
+		.container-content li:hover{
+			color:		#008B8B;
+		}
+		.container-content{
+				width: 80%;
+				margin: auto;
+			
+		}
+		.container-content li{
+			width: 100%;
+			height: 40px;
+		}
+		.container-content .container-content-tips{
+			height:40px;
+			width: 80px;
+			float: left;
+			background-color:#eeeeee;
+			float: left;
+			line-height: 40px;
+
+		}
+		.container-content .container-content-task{
+			height:40px;
+			width: 60%;
+			float: left;
+			background-color:#fefdf6;
+			float: left;
+			line-height: 40px;
+		}
+		.container-content .container-content-option1{
+			height:38px;
+			width: 60px;
+			float: right;
+			background-color:#fdd3ce;
+			float: left;
+			border:1px solid #fefdf6;
+			border-radius: 5px;
+			line-height: 38px;
+		}
+		.container-content .container-content-option2{
+			height:38px;
+			width: 60px;
+			float: right;
+			background-color:#d9fdce;
+			float: left;
+			border:1px solid #fefdf6;
+			border-radius: 5px;
+			line-height: 38px;
+		}
+	</style>
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+	
+	<title>vue-todolist</title>
+</head>
+<body>
+
+<div id="app">
+	<div class="title">
+
+		<h1>Vue Todo</h1>
+		<p>添加任务，管理每日计划</p>
+	</div>
+	<div class="container">
+		<div class="container-add">
+		<input placeholder="快添加一项计划吧！"  v-model="whatToDO" @keyup.enter="addWhatToDo"/><button @click="addWhatToDo">添加任务</button>
+		</div>
+		<div class="container-nav">	
+		<ul>
+			<li @click="handleAll">全部</li>	
+			<li @click="handleDone">完成</li>
+			<li @click="handleToDo">待办</li>
+		</ul>
+		</div>
+		<div class="container-content">
+		<ul>
+			<todo-list-all v-for="(onetodo,value) in todolist" :onetodo="onetodo" :value="value" :key="value" @deletesth="DeleteAll" @done="DoneAll" v-if="status.all"></todo-list-all>
+			<todo-list-to-do v-for="(onetodo,value) in todos" :onetodo="onetodo" :value="value" :key="value" @deletesth="DeleteToDo" @done="Done"  v-if="status.todo"></todo-list-to-do>
+			<todo-list-done v-for="(onetodo,value) in dones" :onetodo="onetodo" :value="value" :key="value" @deletesth="DeleteDone" @todo="ToDo"  v-if="status.done" ></todo-list-done>
+			<li>共{{tasktotal}}项任务</li>
+		</ul>
+		</div>
+	</div>
+
+</div>
+<script >
+	
+	let todoListAll={props:["onetodo","value"],template:'<li ><div class="container-content-task">{{onetodo}}</div><div @click="deletesth" class="container-content-option1">删除 </div></li>',methods:{
+		deletesth(){
+		this.$emit("deletesth",this.value)},
+		done(){
+		this.$emit("done",this.value,this.onetodo)}
+	}};
+	let todoListToDo={props:["onetodo","value"],template:'<li ><div class="container-content-tips">待完成</div><div class="container-content-task">{{onetodo}}</div><div @click="deletesth" class="container-content-option1">删除 </div><div @click="done" class="container-content-option2">已做</div></li>',methods:{
+		deletesth(){
+		this.$emit("deletesth",this.value)},
+		done(){
+		this.$emit("done",this.value,this.onetodo)}
+	}};
+
+	let todoListDone={props:["onetodo","value"],template:'<li ><div class="container-content-tips">已完成</div><div class="container-content-task">{{onetodo}}</div><div @click="deletesth" class="container-content-option1">删除 </div><div @click="todo" class="container-content-option2">未做</div></li>',methods:{
+		deletesth(){
+		this.$emit("deletesth",this.value)},
+		todo(){
+		this.$emit("todo",this.value,this.onetodo)}
+	}};
+	let app=new Vue({
+		el:"#app",
+		data:{ todolist:[],todos:[],dones:[],whatToDO:'',status:{all:false,todo:true,done:false},option:'',tasktotal:"0"},
+		components:{todoListAll:todoListAll,todoListToDo:todoListToDo,todoListDone:todoListDone},
+		methods:{
+			addWhatToDo(){
+
+			this.whatToDO!=="" ? this.todos.push(this.whatToDO):alert("请添加待办任务")	
+			},
+			DeleteAll(value){
+				if(value<this.todos.length){
+				this.todos.splice(value,1)}
+				else{
+					this.dones.splice(value-this.todos.length,1)
+				}
+			},
+			DoneAll(value,onetodo){
+				this.dones.push(onetodo)
+				this.todos.splice(value,1)
+			},
+			DeleteToDo(value){
+				this.todos.splice(value,1)
+			},
+			Done(value,onetodo){
+				this.todos.splice(value,1)
+				this.dones.push(onetodo)
+			},
+			DeleteDone(value){
+				this.dones.splice(value,1)
+			},
+			ToDo(value,onetodo){
+				this.dones.splice(value,1)
+				this.todos.push(onetodo)
+			},
+			handleAll(){
+				this.status={all:true,todo:false,done:false}
+				this.reflash()
+			},
+			handleToDo(){
+				this.status={all:false,todo:true,done:false}
+				this.reflash()
+			},
+			handleDone(){
+				this.status={all:false,todo:false,done:true}
+				this.reflash()
+			},
+			reflash(){
+			if(this.status.all){
+					this.tasktotal=this.todolist.length
+				}
+				else if(this.status.todo){
+					this.tasktotal=this.todos.length
+				}
+				else{
+					this.tasktotal=this.dones.length
+				}
+			}
+		
+		},
+		computed:{
+
+		},
+		watch :{
+			todos(){
+				this.todolist=this.todos.concat(this.dones)
+			
+			},
+			dones(){
+				this.todolist=this.todos.concat(this.dones)
+			},
+			todolist(){
+				this.reflash()
+			}	
+		}
+
+	})
+</script>
+</body>
+</html>
